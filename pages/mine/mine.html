@@ -1,0 +1,132 @@
+ <!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../../css/mui.css" rel="stylesheet" />
+		<script src = "../../js/rem.js"></script>
+		<style>
+			.user-info{
+				height:2rem;
+				background: #CCCCCC;
+				padding-top:.3rem;
+				position: relative;
+			}
+			.user-info .login-info{
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+			.user-info img{
+				width:1rem;
+				height:1rem;
+				border-radius: 50%;
+			}
+			.user-info .exit{
+				position: absolute;
+				right:20px;
+				top:20px;
+			}
+			.user-info .exit i{
+				font-size: 32px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app">
+			<div class="user-info">
+				<div class="login-info">
+					<div class="img-box">
+						<img :src="getUserimg" alt="">
+					</div>
+					<p v-if = "!userInfo" class = "login"><button @tap = "login ">登录</button></p>
+					<p v-else class = "username">{{userInfo.nickname}}</p>
+				</div>
+				
+				<div class = "exit" @tap= "exit"><i class = "mui-icon mui-icon-more"></i></div>
+			</div>
+		</div>
+		<script src="../../js/mui.js"></script>
+		<script src = "../../js/vue.js"></script>
+		<script type="text/javascript">
+			new Vue({
+				el:"#app",
+				data(){
+					return{
+						userInfo:null
+					}
+				},
+				computed:{
+					getUserimg(){
+						return this.userInfo?this.userInfo.headimgurl:"../../images/login.jfif"
+					}
+				},
+				mounted(){
+					window.addEventListener("login:end",e=>{
+						this.getUserInfo()
+						console.log(e.detail.a)
+					})
+				},
+				methods:{
+					login(){
+						mui.openWindow({
+							url:"../login/login.html",
+							id:"login.html",
+							styles:{
+							  top:0,//新页面顶部位置
+							  bottom:0,//新页面底部位置
+							},
+							show:{
+							  autoShow:true,//页面loaded事件发生后自动显示，默认为true
+							  aniShow:"slide-in-top",//页面显示动画，默认为”slide-in-right“；
+							  duration:2000//页面动画持续时间，Android平台默认100毫秒，iOS平台默认200毫秒；
+							}
+						})
+					},
+					getUserInfo(){
+						this.userInfo = JSON.parse(localStorage.userInfo ? localStorage.userInfo : "null")
+					},
+					exit(){
+						plus.nativeUI.actionSheet(
+							{
+								title:"Plus is ready!",
+								cancel:"取消",
+								buttons:[
+									{
+										style:"destructive",
+										title:"注销登录"
+									},
+									{
+										title:"切换登录"
+									}
+								]},
+								(e)=>{
+									console.log("User pressed: "+e.index);
+									switch(e.index){
+										case 1:
+											localStorage.removeItem("userInfo",null)//清除用户信息
+											this.getUserInfo()//重新执行，页面重新渲染
+											break;
+										case 2: 
+											this.login() //点击切换账号直接跳到登录页面
+											break;
+									}
+								}
+						);
+					}
+				},
+				created(){ //从mine跳入login窗口的时候,mine窗口没有被销毁
+					this.getUserInfo()
+				}
+			})
+			
+			
+		</script>
+	</body>
+
+</html>
+
+

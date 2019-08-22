@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Hello MUI</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="./css/mui.min.css">
+		<style>
+			html,
+			body {
+				background-color: #efeff4;
+				font-size:16px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<!-- <header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 id="title" class="mui-title">首页</h1>
+		</header> -->
+		<nav class="mui-bar mui-bar-tab">
+			<!-- href写id -->
+			<a id="defaultTab" class="mui-tab-item mui-active" href="home.html"> 
+				<span class="mui-icon mui-icon-home"></span>
+				<span class="mui-tab-label">首页</span>
+			</a>
+			<!-- <a class="mui-tab-item" href="tab-webview-subpage-chat.html">
+				<span class="mui-icon mui-icon-email"><span class="mui-badge">9</span></span>
+				<span class="mui-tab-label">消息</span> -->
+			</a>
+			<a class="mui-tab-item" href="play.html">
+				<span class="mui-icon mui-icon-paperplane"></span>
+				<span class="mui-tab-label">好玩</span>
+			</a>
+			<a class="mui-tab-item" href="mine.html">
+				<span class="mui-icon mui-icon-gear"></span>
+				<span class="mui-tab-label">设置</span>
+			</a>
+		</nav>
+		<script src="./js/mui.min.js"></script>
+		<script type="text/javascript" charset="utf-8">
+			 //mui初始化
+			mui.init();
+			
+			// var subpages = ['tab-webview-subpage-about.html', 'tab-webview-subpage-chat.html', 'tab-webview-subpage-contact.html', 'tab-webview-subpage-setting.html'];
+			
+			var subpages = [
+				{url:"./pages/home/",id:"home.html"},
+				{url:"./pages/play/",id:"play.html"},
+				{url:"./pages/mine/",id:"mine.html"},
+			]
+			var subpage_style = {//规定子窗口在主窗口中的位置
+				top: '0px',
+				bottom: '51px'
+			};
+			
+			var aniShow = {}; //创建一个空对象
+			
+			 //创建子页面，首个选项卡页面显示，其它均隐藏；
+			mui.plusReady(function() {//放到plusReady中才可以调用h5+的plus方法
+				//设置导航条的颜色
+				plus.navigator.setStatusBarStyle("dark")
+				
+				var self = plus.webview.currentWebview();//主窗口的对象
+				for (var i = 0; i < 3; i++) {//循环三次
+					var temp = {};
+					// WebviewObject plus.webview.create( url, id, styles, extras );
+					var sub = plus.webview.create(subpages[i].url+subpages[i].id,subpages[i].id,subpage_style);
+					if (i > 0) { //第二个与第三个窗口隐藏
+						sub.hide();//调用hide方法
+					}else{
+						temp[subpages[i].id] = "true"; //{home.html:"true"}
+						mui.extend(aniShow,temp); //对象扩展 aniShow = {home.html:"true"}
+					}
+					self.append(sub);//子窗口添加到主窗口
+				}
+			});
+			 //当前激活选项
+			var activeTab = subpages[0].id; //"home.html"
+			// var title = document.getElementById("title");
+			
+			 //选项卡点击事件
+			 //事件委托 让后续动态添加的元素也有之前的事件
+			mui('.mui-bar-tab').on('tap', 'a', function(e) { //给所有的a标签动态绑定事件
+				var targetTab = this.getAttribute('href'); //获得href属性 "home.html"
+				if (targetTab == activeTab) { //如果href属性和id相同
+					return;
+				}
+				//更换标题
+				// title.innerHTML = this.querySelector('.mui-tab-label').innerHTML;
+				//显示目标选项卡
+				//若为iOS平台或非首次显示，则直接显示
+				
+				//判断平台
+				//如果是ios操作系统直接打开对应页面 如果是非ios系统并且第一次进入该页面 则以动画的形式打开
+				if(mui.os.ios||aniShow[targetTab]){
+					plus.webview.show(targetTab);
+				}else{//如果是其他平台则以动画的形式打开
+					//否则，使用fade-in动画，且保存变量
+					var temp = {};
+					temp[targetTab] = "true"; //temp = [“play.html”:"true"]
+					mui.extend(aniShow,temp);//aniShow = ["home.html":"true","play.html":"true"]
+					plus.webview.show(targetTab,"fade-in",300);
+				}
+				//隐藏当前;
+				plus.webview.hide(activeTab);
+				//更改当前活跃的选项卡
+				activeTab = targetTab;
+			});
+			 //自定义事件，模拟点击“首页选项卡”
+			document.addEventListener('gohome', function() {
+				var defaultTab = document.getElementById("defaultTab");
+				//模拟首页点击
+				mui.trigger(defaultTab, 'tap');
+				//切换选项卡高亮
+				var current = document.querySelector(".mui-bar-tab>.mui-tab-item.mui-active");
+				if (defaultTab !== current) {
+					current.classList.remove('mui-active');
+					defaultTab.classList.add('mui-active');
+				}
+			});
+		</script>
+	</body>
+
+</html>

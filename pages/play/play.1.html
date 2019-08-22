@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../../css/mui.css" rel="stylesheet" />
+		<script src = "../../js/rem.js"></script>
+		<style>
+			.common-header{
+				background:#111;
+			}
+			.common-header h1,.common-header a{
+				color:#fff;
+			}
+			
+			.common-header{
+				background: #111;
+			}
+			.common-header h1,.common-header a{
+				color:#fff;
+			}
+			/*music-box*/
+			.music-box{
+				margin:0.5rem .14rem 0;
+				display: flex;
+				justify-content: flex-start;
+				flex-wrap: wrap;
+			}
+			.music-box .music{
+				width:1.6rem;
+				margin-bottom: 10px;
+				margin-left:0.1rem;
+			}
+			.music-box .music:last-child{
+				
+			}
+			.music-box .music img{
+				width:1.6rem;
+				height:1.6rem;
+				border-radius: 6px;
+			}
+			.music-box .music .title{
+				height: 40px;
+			    word-break: break-all;
+			    -o-text-overflow: ellipsis;
+			    text-overflow: ellipsis;
+			    overflow: hidden;
+			    display: -moz-box;
+			    -moz-box-orient: vertical;
+			    -moz-line-clamp: 2;
+			    display: -webkit-box;
+			    -webkit-box-orient: vertical;
+			    -webkit-line-clamp: 2;
+			    box-orient: vertical;
+			    line-clamp: 2;
+			    line-height: 20px;
+			    margin: 0;
+			    white-space: normal;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app">
+			<header class="mui-bar mui-bar-nav common-header">
+				<a class  = "mui-icon-more mui-icon mui-icon-left-nav mui-pull-right"></a>
+				<h1 class="mui-title">好玩</h1>
+			</header>
+			
+			<!--下拉刷新容器-->
+			<div id="refreshContainer" class="mui-content mui-scroll-wrapper">
+			  <div class="mui-scroll">
+				<!--数据列表-->
+				<music-box></music-box>
+			  </div>
+			</div>
+			
+			<!-- <div class = "mui-content">
+				<music-box></music-box>
+			</div> -->
+		</div>
+		
+		<template id = "music-box">
+			<div class="music-box">
+				<music
+					v-for = "music in musics"
+					:key = "music.id"
+					:music = "music"
+				></music>
+			</div>	
+		</template>
+		
+		<template id="music">
+			<div class="music">
+				<div class="img-box">
+					<img :src="music.front_cover" alt="">
+				</div>
+				<p class = "title">{{music.title}}</p>
+			</div>
+		</template>
+		<script src="../../js/mui.min.js"></script>
+		<script src = "../../js/vue.js"></script>
+		<script type="text/javascript">
+			
+			Vue.component("music-box",{
+				template:"#music-box",
+				data(){
+					return{
+						musics:[],
+						order:0,
+						p:1
+					}
+				},
+				methods:{
+					getMusics(){
+						let {order,p} = this;
+						mui.ajax('https://www.missevan.com/explore/tagalbum',{
+							data:{
+								order,
+								p
+							},
+							dataType:'json',//服务器返回json格式数据             
+							success:(data) => {
+								this.musics = this.musics.concat(data.albums)
+								this.p++;
+								//若还有更多数据,则传入False,否则传入distribute
+								mui('#refreshContainer').pullRefresh().endPullupToRefresh(this.p > data.pagination.maxpage);
+							}
+						});
+					}
+				},
+				created(){
+					this.getMusics()
+					mui.init({
+					  pullRefresh : {
+						container:"#refreshContainer",//待刷新区域标识，querySelector能定位的css选择器均可，比如：id、.class等
+						up : {
+						  height:50,//可选.默认50.触发上拉加载拖动距离
+						  //默认启动的话就不需要执行this.getMusics()了
+						  //auto:true,//可选,默认false.自动上拉加载一次
+						  contentrefresh : "正在加载...",//可选，正在加载状态时，上拉加载控件上显示的标题内容
+						  contentnomore:'没有更多数据了',//可选，请求完毕若没有更多数据时显示的提醒内容；
+						  //不需要打括号了,打括号就立马执行了
+						  callback :this.getMusics //必选，刷新函数，根据具体业务来编写，比如通过ajax从服务器获取新数据；
+						}
+					  }
+					});
+				}
+			})
+			
+			Vue.component("music",{
+				template:"#music",
+				props:["music"]
+			})
+			new Vue({
+				el:"#app",
+				created(){
+					// setStatusBar()
+				}
+			})
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../../css/mui.css" rel="stylesheet" />
+		<script src = '../../js/rem.js'></script>
+		<style>
+			/* body{
+				height:2000px;
+			} */
+			.album-box{
+				height:2rem;
+				width:100%;
+				position: relative;
+			    background-color: rgba(0,0,0,.5);
+			    overflow: hidden;
+			}
+			.album-bg{
+				width:100%;
+				height:100%;
+			}
+			.album-bg img{
+				width:100%;
+				height:100%;
+				filter: blur(26px); /*虚化*/
+			}
+			.album-box .img-box{
+				width:1.1rem;
+				height:1.1rem;
+				position: absolute;
+				left:.2rem;
+				top:.5rem;
+			}
+			.album-box .img-box img{
+				width:100%;
+				height:100%;
+			}
+			
+			.album-box .album-info{
+				position: absolute;
+				left:1.5rem;
+				top:.5rem;
+			}
+			.album-box .album-info .headimg{
+				width:.25rem;
+				height:.25rem;
+				border-radius: 50%;
+			}
+			.album-box .album-info .title{
+				margin-bottom: 0.5rem;
+				color:#fff;
+				font-size: 18px;
+			}
+			.album-box .album-info .nickname{
+				padding-left:8px;				
+				font-size: 18px;
+				color:#fff;
+			}
+			
+			
+			/*album-list*/
+			.album-list-item{
+				width:100%;
+				height:70px;
+				position: relative;
+			}
+			.album-list-item:after{
+				content: "";
+			    display: block;
+			    position: absolute;
+			    right: 0;
+			    bottom: 0;
+			    left: 10px;
+			    border-bottom: 1px solid #e0e0e0;
+			}
+			.album-list-item .img-box {
+				width:50px;
+				height:50px;
+				margin:10px;
+				float:left;
+			}
+			.album-list-item .img-box img{
+				width:100%;
+				height:100%;
+				border-radius: 5px;
+			}
+			.album-list-item .album-detail{
+				width:80%;
+				height:70px;
+				float: right;
+				padding:10px 0 10px 10px;
+			}
+			.album-list-item .album-detail .title{
+				height: 36px;
+			    word-break: break-all;
+			    -o-text-overflow: ellipsis;
+			    text-overflow: ellipsis;
+			    overflow: hidden;
+			    display: -moz-box;
+			    -moz-box-orient: vertical;
+			    -moz-line-clamp: 2;
+			    display: -webkit-box;
+			    -webkit-box-orient: vertical;
+			    -webkit-line-clamp: 2;
+			    box-orient: vertical;
+			    line-clamp: 2;
+			    line-height: 18px;
+			    font-size: 12px;
+			}
+			.album-list-item .album-detail .album-desc{
+				position: relative;
+				top:-10px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id = "app">
+			<div class="album-box">
+				<div class="album-bg">
+					<img :src="getImgUrl" alt="">
+				</div>
+				<div class="img-box">
+					<img :src="getImgUrl" alt="">
+				</div>
+				<div class="album-info">
+					<p class = "title">{{album.title}}</p>
+					<p class="auther">
+						<img class = "headimg" src="https://static.missevan.com/web_app/lazy_load.png" alt="">
+						<span class = "nickname">{{album.username}}</span>
+					</p>
+				</div>
+			</div>
+			<div class="album-list">
+				<div class="album-list-item"
+					 v-for = "item in sound"
+					 :key = "item.id"
+					 @tap = "toDetail(item.id)"
+				>
+					<div class="img-box">
+						<img :src="item.front_cover" alt="">
+					</div>
+					<div class="album-detail">
+						<p class = "title">{{item.soundstr}}</p>
+						<p class="album-desc">
+							<span class="play">{{item.view_count_formatted}}</span>
+							<span class="time">{{item.duration | timer}}</span>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="../../js/mui.js"></script>
+		<script src = "../../js/vue.js"></script>
+		<script type="text/javascript">
+			new Vue({
+				el:"#app",
+				data:{
+					album:{},
+					owner:{},
+					sounds:[],
+					sound:[],
+					cHeight:"",
+					pHeight:""
+				},
+				filters:{
+					timer(val){
+						val = val/1000;
+						let second = Math.ceil(val%60)
+						let min = parseInt(val/60)
+						second = second < 10 ? "0" + second:second
+						return min + ":" + second
+					}
+				},
+				methods:{
+					toDetail(detailId){
+						mui.openWindow({
+							url:"../detail/detail.html",
+							id:"detail.html",
+							extra:{
+								detailId
+							}
+						})
+					}
+				},
+				computed:{
+					getImgUrl(){
+						let baseDir = "http://static.missevan.com/coversmini/"
+						return baseDir + this.album.cover_image
+					},
+					getImgUrl(){
+						let baseDir = "http://static.missevan.com/coversmini/"
+						return baseDir + this.album.cover_image
+					}
+				},
+				watch:{
+					sounds(val){
+						if(val.length === 0){
+							window.removeEventListener("scroll",this.listenScroll)
+							
+						}
+					}
+				},
+				methods:{
+					listenScroll(e){
+						let sTop = document.body.scrollTop || document.documentElement.scrollTop; //获取滚动高度
+						this.cHeight = document.documentElement.clientHeight; //获取当前可视区域的高度
+						this.pHeight = document.documentElement.offsetHeight; //获取整个文档的高度
+						if(this.cHeight+sTop+50 >= this.pHeight){ //50：距离底部的高度
+							console.log("滚动到底部了！")
+							this.sound = this.sound.concat(this.sounds.splice(0,10))
+							
+						}
+					},
+					toDetail(detailId){
+						mui.openWindow({
+							url:"../detail/detail.html",
+							extras:{
+								detailId
+							}
+						})
+					}
+				},
+				mounted(){
+					window.addEventListener("scroll",this.listenScroll)
+				},
+				created(){
+					let self = plus.webview.currentWebview()
+					// console.log(self.albumId)
+					mui.ajax({
+						url:"https://www.missevan.com/sound/soundalllist",
+						data:{
+							albumid:self.albumId
+						},
+						dataType:"json",
+						success:data => {
+							this.album = data.info.album;
+							this.owner = data.info.owner;
+							this.sounds = data.info.sounds;//[0,115] ==> [10,115]
+							this.sound = this.sounds.splice(0,10) //[0,9]
+							self.setStyle({
+								"titleNView":{
+									titleText:this.album.title
+								}
+							})
+						}
+					})
+				}
+			})
+		</script>
+	</body>
+
+</html>

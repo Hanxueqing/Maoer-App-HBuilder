@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../../css/mui.css" rel="stylesheet" />
+		<script src = "../../js/rem.js"></script>
+		<style>
+			.common-header{
+				background:#111;
+			}
+			.common-header h1,.common-header a{
+				color:#fff;
+			}
+			
+			.common-header{
+				background: #111;
+			}
+			.common-header h1,.common-header a{
+				color:#fff;
+			}
+			/*music-box*/
+			.music-box{
+				margin:0.5rem .14rem 0;
+				display: flex;
+				justify-content: flex-start;
+				flex-wrap: wrap;
+			}
+			.music-box .music{
+				width:1.6rem;
+				margin-bottom: 10px;
+				margin-left:0.1rem;
+			}
+			.music-box .music:last-child{
+				
+			}
+			.music-box .music img{
+				width:1.6rem;
+				height:1.6rem;
+				border-radius: 6px;
+			}
+			.music-box .music .title{
+				height: 40px;
+			    word-break: break-all;
+			    -o-text-overflow: ellipsis;
+			    text-overflow: ellipsis;
+			    overflow: hidden;
+			    display: -moz-box;
+			    -moz-box-orient: vertical;
+			    -moz-line-clamp: 2;
+			    display: -webkit-box;
+			    -webkit-box-orient: vertical;
+			    -webkit-line-clamp: 2;
+			    box-orient: vertical;
+			    line-clamp: 2;
+			    line-height: 20px;
+			    margin: 0;
+			    white-space: normal;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app">
+			<header class="mui-bar mui-bar-nav common-header">
+				<a @tap = "changeType" class  = "mui-icon-more mui-icon mui-icon-left-nav mui-pull-right"></a>
+				<h1 class="mui-title">好玩</h1>
+			</header>
+			
+		</div>
+		
+		
+		<script src="../../js/mui.min.js"></script>
+		<script src = "../../js/vue.js"></script>
+		<script type="text/javascript">
+			
+			
+			new Vue({
+				el:"#app",
+				methods:{
+					changeType(){
+						//打开新窗口
+						mui.openWindow({
+							url:"./play-type.html",
+							id:"play-type.html",
+							styles:{
+							  bottom:0,//新页面底部位置
+							  height:260
+							},
+							show:{
+							  autoShow:true,//页面loaded事件发生后自动显示，默认为true
+							  aniShow:"slide-in-bottom",//页面显示动画，默认为”slide-in-right“；
+							  duration:200//页面动画持续时间，Android平台默认100毫秒，iOS平台默认200毫秒；
+							}
+						})
+						//设置遮罩层
+						let self = plus.webview.currentWebview()
+						self.setStyle({mask:'rgba(0,0,0,0.5)'})
+          
+					},
+					closeType(self){
+						self.setStyle({mask:'none'}); //让遮罩层消失
+						// plus.webview.getWebviewById("play-type.html").close();//让play-type窗口关闭
+						
+						plus.webview.getWebviewById("play-type.html").hide();//让play-type窗口隐藏
+					}
+				},
+				mounted(){
+					//绑定自定义事件
+					let self = plus.webview.currentWebview()
+					self.addEventListener('maskClick', (e)=>{ //点击遮罩层
+						this.closeType(self)
+					},false);
+					window.addEventListener('close:type', (e)=>{ //点击遮罩层
+						this.closeType(self)
+					});
+				},
+				
+				created(){
+					// setStatusBar()
+					mui.init({
+						subpages:[{
+						  url:"./play-content.html",//下拉刷新内容页面地址
+						  id:"play-content.html",//内容页面标志
+						  styles:{
+							top:44 + plus.navigator.getStatusbarHeight(),//内容页面顶部位置,需根据实际页面布局计算，若使用标准mui导航，顶部默认为48px；
+							bottom:0//其它参数定义
+						  }
+						}]
+					});
+          
+				}
+				
+			})
+		</script>
+	</body>
+
+</html>

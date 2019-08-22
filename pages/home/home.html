@@ -1,0 +1,262 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../../css/swiper.css">
+		<script src = "../../js/rem.js"></script>
+		<style>
+			/* home-banner */
+			.home-banner{
+				height:1.24rem;
+			}
+			.home-banner img{
+				height:100%;
+			}
+			.swiper-pagination{
+				left:auto !important;
+				width:auto !important;
+				right:20px !important;
+				bottom:-10px !important;
+			}
+			.swiper-pagination-bullet-active{
+				background: orange !important;
+			}
+			/* my-sound-box */
+			.my-sound{
+				font-size:16px;
+			}
+			.my-sound .panel-head{
+				display: flex;
+				height:40px;
+				line-height: 40px;
+				font-size:.15rem;
+				justify-content: space-between;
+				padding:0 .1rem;
+			}
+			.my-sound .my-sound-item{
+				width:106px;
+				margin:0 5px;
+			}
+			.my-sound .my-sound-item img{
+			    width: 106px;
+    			height: 106px;
+			}
+			.my-sound .panel-body{
+				margin:0 .14rem;
+				margin-top: .15rem;
+				display: flex;
+				justify-content: space-around;
+			}
+			@media only screen and (max-width: 330px) {
+				.my-sound .panel-body{
+					justify-content: flex-start;
+					overflow-x: auto;
+				}
+			}
+			.my-sound .my-sound-item .title{
+				width: 100%;
+			    height: 36px;
+			    word-break: break-all;
+			    -o-text-overflow: ellipsis;
+			    text-overflow: ellipsis;
+			    overflow: hidden;
+			    display: -moz-box;
+			    -moz-box-orient: vertical;
+			    -moz-line-clamp: 2;
+			    display: -webkit-box;
+			    -webkit-box-orient: vertical;
+			    -webkit-line-clamp: 2;
+			    box-orient: vertical;
+			    line-clamp: 2;
+			    line-height: 18px;
+			    margin: 4px 0;
+			    color: #616161;
+				font-size: 13px;
+			}
+			.my-sound-item .play-count{
+				position: relative;
+			    padding-left: 4px;
+			    font-size: 11px;
+			    line-height: 11px;
+			    color: #bdbdbd;
+			}
+			.my-sound-item .comments{
+				position: relative;
+			    padding-left: 20px;
+			    font-size: 11px;
+			    line-height: 11px;
+			    color: #bdbdbd;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id = "app">
+			<home-banner></home-banner>
+			<my-sound-box></my-sound-box>
+		</div>
+		
+		<template id = "home-banner">
+			<div class="home-banner swiper-container">
+				<div class = "swiper-wrapper">
+					<div class = "swiper-slide"
+						v-for= "(banner,index) in banners"
+						:key = "index"
+					>
+						<img width = "100%" :src = "banner.pic" />
+					</div>
+				</div>
+				<div class="swiper-pagination">
+					
+				</div>
+			</div>
+		</template>
+		
+		<template id = "my-sound-box">
+			<div class="my-sound-box">
+				<my-sound
+					v-for = "sound in sounds"
+					:key = "sound.id"
+					:sound = "sound">
+				</my-sound>
+			</div>
+		</template>
+		
+		<template id = "my-sound">
+			<div class="my-sound">
+				<div class="panel-head">
+					<p>{{sound.title}}</p>
+					<p>更多</p>
+				</div>
+				<div class="panel-body">
+					<my-sound-item
+						v-for = "item in sound.objects_point"
+						:key = "item.id"
+						:item = "item"
+					></my-sound-item>
+				</div>
+			</div>
+		</template>
+		
+		<template id = "my-sound-item">
+			<div class="my-sound-item">
+				<div class="img-box">
+					<img :src="getImgUrl" alt="">
+				</div>
+				<div class="title">
+					{{item.soundstr}}
+				</div>
+				<div class="detail">
+					<span class="play-count">{{item.view_count | filterVal}}</span>
+					<span class = "comments">{{item.comment_count | filterVal}}</span>
+				</div>
+			</div>
+		</template>
+		
+		<script src="../../js/mui.js"></script>
+		<script src = "../../js/vue.js"></script>
+		<script src = "../../js/swiper.js"></script>
+		<script type="text/javascript">
+			
+			let isOk = 0;
+			
+			//注册home-banenr组件
+			Vue.component("home-banner",{
+				template:"#home-banner",
+				data(){ //组件里面数据必须是函数的形式 为了让每一个实例可以获取一份被返回对象的独立的拷贝
+					return{
+						banners:[]
+					}
+				},
+				created(){
+					plus.nativeUI.showWaiting("等待中...");
+					mui.ajax('https://www.missevan.com/mobileWeb/newHomepage3',{
+						dataType:'json',//服务器返回json格式数据             
+						success:(data) => {
+							// console.log(JSON.stringify(data))
+							this.banners = data.info.banner
+							//数据改变,生成新的虚拟dom,与上一次虚拟dom结构做对比,对比完成之后,生成好了新的真实dom,然后在这个函数的回调函数内部就可以访问到因数据变化而渲染出来的真实dom结构了,所以就可以进行实例化相关的操作.
+							this.$nextTick(()=>{
+								new Swiper (".home-banner",{
+									loop:true,
+									pagination:{
+										el:".swiper-pagination"
+									}
+								})
+							})
+							isOk++
+							if(isOk ===2 ){
+								plus.nativeUI.closeWaiting("等待中...")
+							}
+						}
+					});
+				}
+			})
+			
+			
+			//注册my-sound-box组件
+			Vue.component("my-sound-box",{
+				template:"#my-sound-box",
+				data(){
+					return {
+						sounds:[]
+					}
+				},
+				created(){
+					plus.nativeUI.showWaiting("等待中...");
+					mui.ajax('https://www.missevan.com/sound/newhomepagedata',{
+						dataType:'json',
+						success:(data)=>{
+							this.sounds = data.music
+							isOk++
+							if(isOk ===2 ){
+								plus.nativeUI.closeWaiting("等待中...")
+							}
+						}
+					})
+				}
+				
+				
+			})
+			
+			//注册my-sound组件
+			Vue.component("my-sound",{
+				template:"#my-sound",
+				props:["sound"]
+				
+			})
+			
+			//注册my-sound-item组件
+			Vue.component("my-sound-item",{
+				template:"#my-sound-item",
+				props:["item"],
+				computed:{
+					getImgUrl(){
+						let baseDir = "http://static.missevan.com/coversmini/"
+						return baseDir + this.item.cover_image
+					}
+				},
+				filters:{
+					filterVal(val){
+						if(val>10000){
+							val = val/10000;
+							val = val.toFixed(1);
+							val = val+"万"
+						}
+						return val;
+					}
+				}
+				
+			})
+			
+			new Vue({
+				el:"#app"
+			})
+		</script>
+	</body>
+
+</html>

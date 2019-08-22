@@ -1,0 +1,250 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../../css/mui.css" rel="stylesheet" />
+		<script src = "../../js/rem.js"></script>
+		<style>
+			.common-header{
+				background:#111;
+			}
+			.common-header h1,.common-header a{
+				color:#fff;
+			}
+			
+			.common-header{
+				background: #111;
+			}
+			.common-header h1,.common-header a{
+				color:#fff;
+			}
+			/*music-box*/
+			.music-box{
+				margin:0.5rem .14rem 0;
+				display: flex;
+				justify-content: flex-start;
+				flex-wrap: wrap;
+			}
+			.music-box .music{
+				width:1.6rem;
+				margin-bottom: 10px;
+				margin-left:0.1rem;
+			}
+			.music-box .music:last-child{
+				
+			}
+			.music-box .music img{
+				width:1.6rem;
+				height:1.6rem;
+				border-radius: 6px;
+			}
+			.music-box .music .title{
+				height: 40px;
+			    word-break: break-all;
+			    -o-text-overflow: ellipsis;
+			    text-overflow: ellipsis;
+			    overflow: hidden;
+			    display: -moz-box;
+			    -moz-box-orient: vertical;
+			    -moz-line-clamp: 2;
+			    display: -webkit-box;
+			    -webkit-box-orient: vertical;
+			    -webkit-line-clamp: 2;
+			    box-orient: vertical;
+			    line-clamp: 2;
+			    line-height: 20px;
+			    margin: 0;
+			    white-space: normal;
+			}
+			
+			/*置顶*/
+			.back-top-box{
+				position: fixed;
+				width:.4rem;
+				height:.4rem;
+				border-radius: 50%;
+				background: rgba(0,0,0,0.6);
+				color:#fff;
+				right:20px;
+				bottom:30px;
+				z-index:10;
+				display: flex;
+				justify-content: center;
+				align-items:center ;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app">
+			
+			
+			<!--下拉刷新容器-->
+			<div id="refreshContainer" class="mui-content mui-scroll-wrapper">
+			  <div class="mui-scroll">
+				<!--数据列表-->
+				<music-box></music-box>
+			  </div>
+			</div>
+			
+			<!-- 置顶 -->
+			<div @tap="backtop" class = "back-top-box" v-if="isShow">
+				<div class = "back-top">
+					<i class = "mui-icon mui-icon-arrowup"></i>
+				</div>
+			</div>
+			
+			
+		</div>
+		
+		<template id = "music-box">
+			<div class="music-box">
+				<music
+					v-for = "music in musics"
+					:key = "music.id"
+					:music = "music"
+				></music>
+			</div>	
+		</template>
+		
+		<template id="music">
+			<div class="music" @tap = "toAlbum(music.id)">
+				<div class="img-box">
+					<img :src="music.front_cover" alt="">
+				</div>
+				<p class = "title">{{music.title}}</p>
+			</div>
+		</template>
+		<script src="../../js/mui.min.js"></script>
+		<script src = "../../js/vue.js"></script>
+		<script type="text/javascript">
+			
+			Vue.component("music-box",{
+				template:"#music-box",
+				data(){
+					return{
+						musics:[],
+						order:0,
+						p:1,
+						tid:0
+					}
+				},
+				mounted(){
+					window.addEventListener("getTid",e=>{
+						// console.log(e.detail.tid)
+						this.changeType(e.detail.tid)
+					})
+				},
+				methods:{
+					changeType(tid){
+						this.musics = [];
+						this.p = 1;
+						this.tid = tid
+						this.getMusics();
+						//重置上拉加载
+						mui('#refreshContainer').pullRefresh().refresh(true);
+						//需要实现滚动到顶部
+						mui("#refreshContainer").pullRefresh().scrollTo(0,0);
+					},
+					getMusics(){
+						// let {order,p} = this;
+						let data;
+						if(this.tid === 0){ //说明是全部分类
+							data = {order:this.order,p:this.p}
+						}else{
+							data = {order:this.order,p:this.p,tid:this.tid}
+						}
+						mui.ajax('https://www.missevan.com/explore/tagalbum',{
+							data,
+							dataType:'json',//服务器返回json格式数据             
+							success:(data) => {
+								this.musics = this.musics.concat(data.albums)
+								this.p++;
+								//若还有更多数据,则传入False,否则传入distribute
+								mui('#refreshContainer').pullRefresh().endPullupToRefresh(this.p > data.pagination.maxpage);
+							}
+						});
+					}
+				},
+				created(){
+					//this.getMusics()
+					mui.init({
+					  pullRefresh : {
+						container:"#refreshContainer",//待刷新区域标识，querySelector能定位的css选择器均可，比如：id、.class等
+						up : {
+						  height:50,//可选.默认50.触发上拉加载拖动距离
+						  //默认启动的话就不需要执行this.getMusics()了
+						  auto:true,//可选,默认false.自动上拉加载一次
+						  contentrefresh : "正在加载...",//可选，正在加载状态时，上拉加载控件上显示的标题内容
+						  contentnomore:'没有更多数据了',//可选，请求完毕若没有更多数据时显示的提醒内容；
+						  //不需要打括号了,打括号就立马执行了
+						  callback :this.getMusics //必选，刷新函数，根据具体业务来编写，比如通过ajax从服务器获取新数据；
+						}
+					  }
+					});
+				}
+			})
+			
+			Vue.component("music",{
+				template:"#music",
+				props:["music"],
+				methods:{
+					toAlbum(albumId){
+						//打开album.html这个窗口
+						mui.openWindow({
+							url:"../album/album.html",
+							id:"album.html",
+							extras:{
+								albumId
+							},
+							styles:{
+						    	//设置一个渐变式导航栏
+						    	"titleNView":{
+									backgroundColor: '#234245',//导航栏背景色
+				                    titleText: '猫耳FM',//导航栏标题
+								    titleColor: '#fff',//文字颜色
+								    type:'transparent',//透明渐变样式
+								    autoBackButton: true,//自动绘制返回箭头
+								    splitLine:{//底部分割线
+								        color:'#cccccc'
+								    }
+								}
+						    }
+						})
+					}
+				}
+			})
+			
+			new Vue({
+				el:"#app",
+				data:{
+					isShow:false
+				},
+				methods:{
+					backtop(){
+						//需实现滚动到顶部
+						mui('#refreshContainer').pullRefresh().scrollTo(0,0,100)
+					}
+				},
+				mounted(){ //可以拿到真实dom
+					//监听滚动事件
+					document.querySelector('#refreshContainer' ).addEventListener('scroll', (e)=>{ 
+					  var scroll = mui('#refreshContainer').pullRefresh(); //获取具体容器的滚动条
+					  // console.log(scroll.y); 
+					  if(scroll.y <= -300 && !this.isShow){
+						  this.isShow = true;
+					  }else if(scroll.y > -300 && this.isShow){
+						  this.isShow = false;
+					  }
+					}) 
+
+				}
+				
+			})
+		</script>
+	</body>
+
+</html>

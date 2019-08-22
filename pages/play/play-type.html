@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../../css/mui.css" rel="stylesheet" />
+		<script src = '../../js/rem.js'></script>
+		<style>
+			.play-type-box{
+				padding:.14rem;
+				position: relative;
+			}
+			.play-type{
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+			}
+			.play-type button{
+				margin:5px;
+			}
+			.close{
+				position: absolute;
+				right:30px;
+				top:20px;
+				border:1px solid red;
+				border-radius: 50%;
+				color:red;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id = "app">
+			<div class="play-type-box">
+				<div 
+					class="play-type"
+					v-for = "(value,key,index) in musicType"
+					:key = "index"
+				>
+					<span>{{key}}</span>
+					<button
+						v-for = "(item,i) in value"
+						:key = "i"
+						:class = "{'mui-btn-danger' : item[0] === activeId}"
+						@click = "activeId = item[0]"
+					>{{item[1]}}</button>
+				</div>
+				<div class="close" @tap="close">
+					<i class = "mui-icon mui-icon-closeempty"></i>
+				</div>
+			</div>
+		</div>
+		<script src="../../js/mui.js"></script>
+		<script src = "../../js/vue.js"></script>
+		<script type="text/javascript">
+			new Vue({
+				el:"#app",
+				data:{
+					musicType:{},
+					activeId:0
+				},
+				watch:{
+					activeId(val){
+						let playContent = plus.webview.getWebviewById("play-content.html")
+						mui.fire(playContent,"getTid",{tid:val})
+						//关闭遮罩与play-type窗口
+						this.close()
+					}
+				},
+				created(){
+					mui.ajax({
+						url:"https://www.missevan.com/malbum/recommand",
+						dataType:"json",
+						success:(data)=>{
+							// console.log(JSON.stringify(data))
+							//{"success":true,"info":{"情感":[[170,"热血"],[28,"治愈"],[4421,"抖腿"]],"场景":[[26310,"玩游戏"],[26311,"运动听"],[25,"作业向"]],"主题":[[370,"OP"],[376,"ED"],[273,"翻唱"],[5,"古风"],[850,"同人音乐"],[13349,"游戏原声"],[4,"广播剧"]]}}
+							// this.musicType = data.info;
+							this.musicType["全部"] = [[0,"全部音单"]]
+							this.musicType = {...this.musicType,...data.info}
+							//或者通过ES5中的assign方法
+							// this.musicType = Object.assign({},this.musicType,data.info)
+						}
+					})
+				},
+				methods:{
+					close(){
+						
+						//需要关闭遮罩层与play-type.html
+						let play = plus.webview.getWebviewById("play.html")
+						mui.fire(play,"close:type")
+					}
+				}
+			})
+		</script>
+	</body>
+
+</html>

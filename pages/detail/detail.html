@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../../css/mui.css" rel="stylesheet" />
+		<script src = '../../js/rem.js'></script>
+	</head>
+
+	<body>
+		<div id="app">
+			
+		</div>
+		<script src="../../js/mui.js"></script>
+		<script src = "../../js/vue.js"></script>
+		<script type="text/javascript">
+			new Vue({
+				el:"#app",
+				created(){
+					let self = plus.webview.currentWebview();
+					let albumDetail = mui.openWindow({
+						url:"https://m.missevan.com/sound/"+self.detailId,
+						id:"detail.html",
+						styles:{
+							//设置一个渐变式导航栏
+							"titleNView":{
+								backgroundColor: '#234245',//导航栏背景色
+								titleColor: '#fff',//文字颜色
+								type:'transparent',//透明渐变样式
+								autoBackButton: true,//自动绘制返回箭头
+								splitLine:{//底部分割线
+									color:'#cccccc'
+								}
+							}
+						}
+					})
+					albumDetail.onloaded = function(){
+						albumDetail.evalJS('document.getElementsByTagName("header")[0].innerHTML = "";document.getElementsByTagName("container")[0].style.padding = 0')
+					}
+				}
+			})
+		</script>
+	</body>
+
+</html>
